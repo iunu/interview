@@ -2,3 +2,36 @@
   font-family: sans-serif;
   text-align: center;
 }
+
+.moveDown {
+  animation-name: moveDown;
+  animation-duration: 3s;
+  animation-iteration-count: infinite;
+  animation-timing-function: linear;
+}
+
+.moveDown:nth-child(1) {
+  animation-name: fadeIn;
+  animation-duration: 3s;
+  animation-iteration-count: infinite;
+}
+
+@keyframes fadeIn {
+  from {
+    transform: translateY(0%);
+    opacity: 0;
+  }
+  to {
+    opacity: 100%;
+    transform: translateY(100%);
+  }
+}
+
+@keyframes moveDown {
+  from {
+    transform: translateY(0%);
+  }
+  to {
+    transform: translateY(100%);
+  }
+}
