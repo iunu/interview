@@ -4,7 +4,11 @@ import { Raft, Tray, varieties } from "./data";
 import { useState } from "react";
 import _ from "lodash";
 
+// Note: there are several CSS animation thta match this speed, so you should update
+//       those as well if changing this value
 const GAME_SPEED = 3000;
+
+// Initial state of the game
 const INIT = {
   day: 1,
   germination: [],
@@ -25,17 +29,19 @@ export default function App() {
   const [ponds, setPonds] = useState(INIT.ponds);
 
   const gameLoop = () => {
-    setDay((day) => day + 1);
-    resetTimer();
     cyclePonds();
+    resetTimer();
+    setDay((day) => day + 1);
     console.log("tick");
   };
 
   const resetTimer = () => {
+    // A bit of a hack to reset the animation on the timer
     setTimer(false);
     setTimer(true);
   };
 
+  // Empty out the tranplant array and add each into a separate pond queue
   const cyclePonds = () => {
     let transplants = [];
     setTransplant((transplant) => {
