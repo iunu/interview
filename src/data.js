@@ -11,8 +11,16 @@ export class Tray {
   capacity = 240;
   used = 0;
 
+  constructor(variety) {
+    this.variety = variety;
+  }
+
   get open() {
     return this.capacity - this.used;
+  }
+
+  get name() {
+    return this.variety.name;
   }
 }
 
@@ -22,32 +30,41 @@ export const varieties = [
     name: "Thai Basil",
     actions: [
       {
-        action_type: "move",
-        day: 15
+        type: "transplant",
+        day: 10
       },
       {
-        action_type: "harvest",
+        type: "harvest",
         day: 30
       }
     ]
   },
   {
     id: "2",
-    name: "Rocket Lettuce"
+    name: "Sweet Lettuce",
+    actions: [
+      {
+        type: "transplant",
+        day: 14
+      },
+      {
+        type: "harvest",
+        day: 38
+      }
+    ]
   },
   {
     id: "3",
-    name: "Bib Lettuce"
-  },
-  {
-    id: "4",
-    name: "Vine Tomato"
+    name: "Astro Arugula",
+    actions: [
+      {
+        type: "transplant",
+        day: 3
+      },
+      {
+        type: "harvest",
+        day: 21
+      }
+    ]
   }
-];
-
-export const varietiesw = [
-  { name: "Thai Basil" },
-  { name: "Rocket Lettuce" },
-  { name: "Baby Spinach" },
-  { name: "Vine Tomato" }
 ];
