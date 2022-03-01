@@ -1,22 +1,22 @@
-export class Raft {
-  capacity = 60;
-  used = 0;
+export class ProductionRaft {
+  capacity = 48;
+  plants = 0;
 
   get open() {
-    return this.capacity - this.used;
+    return this.capacity - this.plants;
   }
 }
 
-export class Tray {
-  capacity = 240;
-  used = 0;
+export class GerminationTray {
+  capacity = 276;
+  plants = 0;
 
   constructor(variety) {
     this.variety = variety;
   }
 
   get open() {
-    return this.capacity - this.used;
+    return this.capacity - this.plants;
   }
 
   get name() {
@@ -27,7 +27,7 @@ export class Tray {
 export const varieties = [
   {
     id: "1",
-    name: "Thai Basil",
+    name: "Romaine Lettuce",
     actions: [
       {
         type: "transplant",
@@ -41,7 +41,7 @@ export const varieties = [
   },
   {
     id: "2",
-    name: "Sweet Lettuce",
+    name: "Butterhead Lettuce",
     actions: [
       {
         type: "transplant",
@@ -55,7 +55,7 @@ export const varieties = [
   },
   {
     id: "3",
-    name: "Astro Arugula",
+    name: "Rocket Lettuce",
     actions: [
       {
         type: "transplant",
