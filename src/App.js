@@ -1,6 +1,6 @@
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./styles.css";
-import { Raft, Tray, varieties } from "./data";
+import { ProductionRaft, GerminationTray, varieties } from "./data";
 import { useState } from "react";
 import _ from "lodash";
 
@@ -11,88 +11,127 @@ const GAME_SPEED = 3000;
 // Initial state of the game
 const INIT = {
   day: 1,
-  germination: [],
-  transplant: {
-    rafts: [...Array(3)]
+  germination: {
+    trays: []
   },
-  ponds: [...Array(3)].map(() => ({
-    rafts: [...Array(10)]
-  }))
+  production: [{
+    name: 'Pond 1',
+    rafts: []
+  }, {
+    name: 'Pond 2',
+    rafts: []
+  }, {
+    name: 'Pond 3',
+    rafts: []
+  }]
 };
 
+let intervalId
+
 export default function App() {
-  const [intervalId, setIntervalId] = useState();
   const [day, setDay] = useState(INIT.day);
   const [timer, setTimer] = useState(false);
   const [germination, setGermination] = useState(INIT.germination);
-  const [transplant, setTransplant] = useState(INIT.transplant);
-  const [ponds, setPonds] = useState(INIT.ponds);
+  const [production, setProduction] = useState(INIT.production);
 
+  /**
+   * Can be used for 
+   */
   const gameLoop = () => {
-    cyclePonds();
+    cycleProduction();
     resetTimer();
     setDay((day) => day + 1);
-    console.log("tick");
   };
 
+  // A bit of a hack to reset the css animation on the timer
   const resetTimer = () => {
-    // A bit of a hack to reset the animation on the timer
     setTimer(false);
     setTimer(true);
   };
 
-  // Empty out the tranplant array and add each into a separate pond queue
-  const cyclePonds = () => {
-    let transplants = [];
-    setTransplant((transplant) => {
-      transplants = _.cloneDeep(transplant);
-      return INIT.transplant;
-    });
-    setPonds((ponds) => {
-      const newPonds = _.cloneDeep(ponds);
-      newPonds.forEach((pond, i) => {
-        const raft = transplants.rafts[i];
-        pond.rafts.unshift(raft);
-        pond.rafts.pop();
+  /**
+   * Adds a new raft to each pond in production
+   */ 
+  const cycleProduction = () => {
+    setProduction((production) => {
+      const newProduction = _.cloneDeep(production);
+      newProduction.forEach((pond) => {
+        pond.rafts.unshift(new ProductionRaft());
       });
-      return newPonds;
+      return newProduction;
     });
   };
 
-  const start = () => {
-    setIntervalId(setInterval(gameLoop, GAME_SPEED));
-    setTimer(true);
-  };
-
-  const reset = () => {
-    clearInterval(intervalId);
-    setDay(INIT.day);
-    setGermination(INIT.germination);
-    setTransplant(INIT.transplant);
-    setPonds(INIT.ponds);
-    setTimer(false);
-  };
-
+  /**
+   * Logs the game's data objects to console
+   */
   const debug = () => {
     console.log({
       day,
       germination,
-      transplant,
-      ponds,
+      production,
       timer
     });
   };
 
-  const addRaft = (pondIndex) => {
-    const newTransplant = _.cloneDeep(transplant);
-    newTransplant.rafts[pondIndex] = new Raft();
-    setTransplant(newTransplant);
+  /**
+   * Transplants seedlings from the oldest seeded tray to the newest raft of the 
+   * selected pond.
+   * @param {number} pondIndex the index of the pond to transplant to
+   */
+
+  const transplantToPond = (pondIndex) => {
+    const germinationCopy = _.cloneDeep(germination);
+    const productionCopy = _.cloneDeep(production);
+
+    const sourceTray = germinationCopy.trays.pop();
+    const destinationRaft = productionCopy[pondIndex].rafts[0];
+    
+    const plantsRequested = destinationRaft.open;
+    const plantsAvailable = sourceTray.plants;
+    const plantsUsed = Math.min(plantsRequested, plantsAvailable);
+
+    sourceTray.plants -= plantsUsed;
+    destinationRaft.plants += plantsUsed;
+
+    if(sourceTray.plants > 0) {
+      germinationCopy.trays.push(sourceTray);
+    }
+
+    setGermination(germinationCopy);
+    setProduction(productionCopy)
   };
 
-  const addThaiBasil = () => {
-    let germCopy = [...germination];
-    germCopy.push(new Tray(varieties[0]));
-    setGermination(germCopy);
+  /**
+   * Add a new tray to Germination
+   * @param {Object} variety the variety of lettuce to seed
+   */
+  const seedTray = (variety) => {
+    const germinationCopy = _.cloneDeep(germination);
+    const newTray = new GerminationTray(variety)
+    newTray.plants = newTray.capacity
+    germinationCopy.trays.push(newTray);
+    setGermination(germinationCopy);
+  };
+
+  /**
+   * Clears any existing game loops and starts a new one
+   */
+  const start = () => {
+    clearInterval(intervalId);
+    intervalId = setInterval(gameLoop, GAME_SPEED);
+    setTimer(true);
+  };
+
+  /**
+   * Resets the game
+   */
+  const reset = () => {
+    clearInterval(intervalId);
+    setDay(INIT.day);
+    setGermination(INIT.germination);
+    setProduction(INIT.production);
+    setTimer(false);
   };
 
   return (
@@ -128,8 +167,8 @@ export default function App() {
       <div className="container mb-4">
         <div className="row">
           <div className="col">
-            <button className="btn btn-primary" onClick={addThaiBasil}>
-              Thai Basil
+            <button className="btn btn-primary" onClick={() => seedTray(varieties[0])}>
+              {varieties[0].name}
             </button>
           </div>
         </div>
@@ -140,7 +179,7 @@ export default function App() {
               style={{ width: "655px", height: "170px" }}
             >
               <div className="row">
-                {germination.map((tray, ti) => (
+                {germination.trays.map((tray, ti) => (
                   <div
                     className="col border border-success m-1 rounded-1 p-1"
                     key={ti}
@@ -161,20 +200,21 @@ export default function App() {
       </div>
 
       {/* Ponds */}
-      <h2 className="fs-3">Growing Ponds</h2>
+      <h2 className="fs-3">Production</h2>
       <div
         className="border border-2 rounded-3 container py-2 mb-5"
         style={{ minWidth: "932px" }}
       >
-        {ponds.map((pond, pi) => (
-          <div className="row mx-2 mb-3 g-0 align-items-center" key={pi}>
-            <h3 className="fs-5 text-start">Pond {pi + 1}</h3>
+        {production.map((pond, pondIndex) => (
+          <div className="row mx-2 mb-3 g-0 align-items-center" key={pond.name}>
+            <h3 className="fs-5 text-start">{pond.name}</h3>
             <div className="pond-bg"></div>
             <div className="col-1">
               <button
                 className="btn btn-light position-relative"
                 style={{ left: "-60px" }}
-                onClick={() => addRaft(pi)}
+                onClick={() => transplantToPond(pondIndex)}
+                disabled={!germination.trays.length}
               >
                 Transplant
               </button>
@@ -185,9 +225,9 @@ export default function App() {
                   raft != null && "border raft"
                 }`}
                 style={{ height: "120px", maxWidth: "80px" }}
-                key={`${pi}-${ri}`}
+                key={`${pond.name}-${ri}`}
               >
-                {raft?.used}
+                {raft?.plants}
               </div>
             ))}
           </div>
